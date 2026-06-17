@@ -1,0 +1,10 @@
+{
+    "D08": [
+        {
+            "task_name": "Task 1 - Compare Purchase Orders, Goods Receipts, invoices and payments",
+            "task_title": "Chart 1/ Comparison between purchase order, goods receipt, invoice, payment value per month",
+            "task_content": "Analyze the data and look for the following issues: However, when comparing values, remember that it is normal for purchase order value and goods receipt value to be about 20% less than invoice and payment value because purchase order value and goods receipt value do not include purchasing/ sales tax/ value added tax. a) If the Purchase Order value is much higher than the invoice value then it could indicate purchasing budgets are over-estimated. b) If invoice value is higher than the payment value, then it could indicate that fictitious invoices have been entered in order to inflate cost and decrease profits, perhaps in order to artificially decrease corporate tax liabilities. c) If the Goods Receipt value is lower than the other values, then it could indicate that Goods Receipts are not recorded, which may indicate that inventory is intercepted, stolen or that suppliers are paid without actually delivering. d) If the Purchase Order value is much lower than the invoice value, then it could indicate that purchases do not go through the Materials Management module of SAP, which could indicate that Purchase Order approval controls are not in place. e) If the Goods Receipt value is higher than the Purchase Order value, then it could indicate that suppliers over-deliver in order to push-up the value of the invoice that they subsequently send.",
+            "currentTask": 1
+        }
+    ]
+}
