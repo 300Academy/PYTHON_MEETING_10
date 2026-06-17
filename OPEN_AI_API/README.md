@@ -4,15 +4,15 @@
 Send results table to openAI and get in return a tabe with Observation|Risk|Recommendation|Priority from a pre-trained assistant.
 
 ## Instructions
-Please note: this program automatically finds the requirements file and runs it. To use this functionality, ensure that you are in python version 3.12 or lower.
+Please note: this program automatically finds the requirements file and runs it. To use this functionality, ensure that you are in python version 3.14 or lower.
 
 This program does not require you to input the root folder address. The program will infer the folder address. However, you need to make sure that you respect the folder structure as mentioned below for this inference to work.
 
 ### 1/ Create Virtual Environment 
 
-For this project, we need to use the 3.12 version of Python, because this is compatible with PI_SUBPROCESS, that we use to automatically install the Python libraries. 
+For this project, we need to use the 3.14 version of Python, because this is compatible with PI_SUBPROCESS, that we use to automatically install the Python libraries. 
 
-Ensure that you have Python version 3.12 on your machine. If you do not have it, download it from https://www.python.org/downloads. 
+Ensure that you have Python version 3.14 on your machine. If you do not have it, download it from https://www.python.org/downloads. 
 
 In Visual Studio Code, open a PowerShell terminal (View-> Terminal) at the location: (you can use cd - change directory - to navigate to the 02_PROGRAMMES folder)
 
@@ -23,9 +23,9 @@ Ensure that the address in the terminal matches C:\YourProjectRootFolder\02_PROG
 The rest of the instructions are commands that we will run in the Powershell terminal at this location.
 
 ```bash
-py -3.12 -m venv venv
+py -3.14 -m venv venv
 ```
-After running, check that you have a \venv folder created inside 02_PROGRAMMES and that it contains python.exe inside \venv\Scripts and that you see pip3.12.exe
+After running, check that you have a \venv folder created inside 02_PROGRAMMES and that it contains python.exe inside \venv\Scripts and that you see pip3.14.exe
 
 ---
 
@@ -47,7 +47,7 @@ In this python project, the requirements will be installed automatically based o
 Updat the .env.example to your own Kaggle key. Then rename it as .env. See the webclass presentation for how to create an openAI key.
 
 ```bash
-ZV_API_KEY=sk-XXXXXXXXXXXXXXX-k8EA
+ZV_ST_OPENAI_API_KEY=sk-XXXXXXXXXXXXXXX-k8EA
 ```
 
 ### 5/ Run the script

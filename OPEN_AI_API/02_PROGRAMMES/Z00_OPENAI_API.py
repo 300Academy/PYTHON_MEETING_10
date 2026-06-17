@@ -40,16 +40,17 @@ from openai import AuthenticationError as PI_AUHENTICAIONERROR
 from Z_SHARED_FUNCTIONS.FC_EXPORT import FC_EXPORT_EXCEL_POLARS
 
 # 2/ Variables
-ZV_OPENAI_API_KEY = ZV_DI_VARIABLES.get('ZV_OPENAI_API_KEY')
 ZV_ST_SOURCES_FOLDER = PI_OS.path.join(
         ZV_ST_ROOT_FOLDER,
         '01_SOURCES'
     )
+
 ZV_ST_RESULTS_FOLDER = PI_OS.path.join(
         ZV_ST_ROOT_FOLDER,
         '03_RESULTS'
     )
 
+ZV_ST_OPENAI_API_KEY = ZV_DI_VARIABLES.get('ZV_ST_OPENAI_API_KEY')
 ZV_ST_SOURCE_FILE_NAME=ZV_DI_VARIABLES.get('ZV_ST_SOURCE_FILE_NAME')
 ZV_ST_JSON_FILE_NAME=ZV_DI_VARIABLES.get('ZV_ST_JSON_FILE_NAME')
 ZV_ST_RESULTS_FILE_NAME = ZV_DI_VARIABLES.get('ZV_ST_RESULTS_FILE_NAME')
@@ -60,7 +61,7 @@ def Z00_OPENAI_API():
     def FC_CREATE_AI_CLIENT():
         ZV_OB_AI_CLIENT = PI_OPENAI(
             default_headers={"OpenAI-Beta": "assistants=v2"},
-            api_key=ZV_OPENAI_API_KEY
+            api_key=ZV_ST_OPENAI_API_KEY
         )
 
         ZV_OB_THREAD = ZV_OB_AI_CLIENT.beta.threads.create()
@@ -70,7 +71,7 @@ def Z00_OPENAI_API():
 
 
     def FC_CREATE_AI_ASSISTANT(ZVFCI_AI_CLIENT):
-        ZV_ASSISTANT = ZVFCI_AI_CLIENT.beta.assistants.create(
+        ZV_OB_ASSISTANT = ZVFCI_AI_CLIENT.beta.assistants.create(
             name="SAP Dashboard Risk Analyst",
             instructions='''
             You are a skilled Data Analyst analyzing SAP dashboards (Order to Cash and others). Your tasks include:
@@ -102,7 +103,7 @@ def Z00_OPENAI_API():
             model="gpt-4o-mini",
             tools=[]
         )
-        return ZV_ASSISTANT
+        return ZV_OB_ASSISTANT
 
 
     def FC_LOAD_TASKS_FROM_JSON(ZVFCI_ST_JSON_FILE_PATH, ZVFCI_ST_JSON_NAME):
@@ -155,7 +156,7 @@ def Z00_OPENAI_API():
             
         # 2/ Try to run AI query
         try:
-            ZV_AI_RUN = ZVFCI_AI_CLIENT.beta.threads.runs.create_and_poll(
+            ZV_OB_OPENAI_RESPONSE = ZVFCI_AI_CLIENT.beta.threads.runs.create_and_poll(
                 thread_id=ZVFCI_AI_THREAD_ID,
                 assistant_id=ZVFCI_AI_ASSISTANT.id,
                 tools=[]
@@ -169,14 +170,15 @@ def Z00_OPENAI_API():
         ZV_ST_RESPONSE_MESSAGE = "No response found."
 
         # 4.3.2/ Get response if run of AI query successful
-        if ZV_AI_RUN:
-            ZV_OB_LI_AI_MSG = ZVFCI_AI_CLIENT.beta.threads.messages.list(thread_id=ZVFCI_AI_THREAD_ID, run_id=ZV_AI_RUN.id)
-            for ZV_OB_AI_MSG in ZV_OB_LI_AI_MSG.data:
-                if ZV_OB_AI_MSG.role == "assistant":
-                    content = ZV_OB_AI_MSG.content[0]
+        if ZV_OB_OPENAI_RESPONSE:
+            ZV_OB_LI_OPENAI_MSG = ZVFCI_AI_CLIENT.beta.threads.messages.list(thread_id=ZVFCI_AI_THREAD_ID, run_id=ZV_OB_OPENAI_RESPONSE.id)
+            for ZV_OB_OPENAI_MSG in ZV_OB_LI_OPENAI_MSG.data:
+                if ZV_OB_OPENAI_MSG.role == "assistant":
+                    content = ZV_OB_OPENAI_MSG.content[0]
                     if hasattr(content, 'text'):
                         ZV_ST_RESPONSE_MESSAGE = content.text.value
                         break
+
                     elif hasattr(content, 'image'):
                         ZV_ST_RESPONSE_MESSAGE = "[Image Response]"
                         break
@@ -237,7 +239,7 @@ def Z00_OPENAI_API():
         ZV_OB_AI_CLIENT, ZV_ST_THREAD_ID = FC_CREATE_AI_CLIENT()
 
         # 1.2/ Create AI assistant
-        ZV_AI_ASSISTANT = FC_CREATE_AI_ASSISTANT(ZV_OB_AI_CLIENT)
+        ZV_OB_ASSISTANT = FC_CREATE_AI_ASSISTANT(ZV_OB_AI_CLIENT)
 
         # 1.3/ Import JSON tasks
         ZV_DI_ALL_TASKS = FC_LOAD_TASKS_FROM_JSON(ZV_ST_SOURCES_FOLDER, ZV_ST_JSON_FILE_NAME)
@@ -259,30 +261,30 @@ def Z00_OPENAI_API():
                 )
 
                 # Process task
-                ZV_DI_AI_RESPONSE = FC_PROCESS_TASK(ZV_OB_AI_CLIENT, ZV_AI_ASSISTANT, ZV_ST_THREAD_ID, ZV_ST_PROMPT)
+                ZV_DI_OPENAI_RESPONSE = FC_PROCESS_TASK(ZV_OB_AI_CLIENT, ZV_OB_ASSISTANT, ZV_ST_THREAD_ID, ZV_ST_PROMPT)
 
                 # Prepare response
-                ZV_DI_JS_RESPONSE = {
-                    "dashboard_id": ZV_ST_DASHBOARD_ID,
-                    "task_index": ZV_IN_TASK_INDEX + 1,
-                    "chart_title": ZV_ST_CHART_TITLE,
-                    "response": ZV_DI_AI_RESPONSE['ZV_ST_RESPONSE_MSG'],
+                ZV_DI_OPENAI_RESPONSE = {
+                    'dashboard_id': ZV_ST_DASHBOARD_ID,
+                    'task_index': ZV_IN_TASK_INDEX + 1,
+                    'chart_title': ZV_ST_CHART_TITLE,
+                    'response': ZV_DI_OPENAI_RESPONSE['ZV_ST_RESPONSE_MSG'],
                 }
 
                 # Separate the table and Executive Summary if applicable
-                if "### Executive Summary" in ZV_DI_JS_RESPONSE['response']:
-                    ZV_ST_TABLE, ZV_ST_SUMMARY = ZV_DI_JS_RESPONSE['response'].split("### Executive Summary", 1)
+                if "### Executive Summary" in ZV_DI_OPENAI_RESPONSE['response']:
+                    ZV_ST_RESPONSE_TABLE, ZV_ST_RESPONSE_SUMMARY = ZV_DI_OPENAI_RESPONSE['response'].split("### Executive Summary", 1)
                 else:
-                    ZV_ST_TABLE, ZV_ST_SUMMARY = ZV_DI_JS_RESPONSE['response'], ""
+                    ZV_ST_RESPONSE_TABLE, ZV_ST_RESPONSE_SUMMARY = ZV_DI_OPENAI_RESPONSE['response'], ""
 
                 # Print header with better formatting
                 print("\n" + "=" * 80)
-                print(f"  {ZV_DI_JS_RESPONSE['chart_title'].upper()}")
+                print(f"  {ZV_DI_OPENAI_RESPONSE['chart_title'].upper()}")
                 print("=" * 80 + "\n")
 
                 # Print the table content with proper spacing
-                ZV_LI_TABLE_LINES = ZV_ST_TABLE.strip().split("\n")
-                for ZV_IN_LINE_INDEX, ZV_ST_LINE in enumerate(ZV_LI_TABLE_LINES):
+                ZV_LI_RESPONSE_LINES = ZV_ST_RESPONSE_TABLE.strip().split("\n")
+                for ZV_IN_LINE_INDEX, ZV_ST_LINE in enumerate(ZV_LI_RESPONSE_LINES):
                     # Add extra spacing after headers
                     if ZV_ST_LINE.startswith("###"):
                         if ZV_IN_LINE_INDEX > 0:
@@ -300,16 +302,16 @@ def Z00_OPENAI_API():
                         print(ZV_ST_LINE)
 
                 # Print executive summary with better formatting
-                if ZV_ST_SUMMARY:
+                if ZV_ST_RESPONSE_SUMMARY:
                     print("\n" + "-" * 80)
                     print("  EXECUTIVE SUMMARY")
                     print("-" * 80)
-                    print(ZV_ST_SUMMARY.strip())
+                    print(ZV_ST_RESPONSE_SUMMARY.strip())
 
                 print("\n" + "=" * 80 + "\n")
 
                 # Parse the markdow information
-                ZV_LI_DI_PARSED_MARKDOWN_ROWS = FC_PARSE_MARKDOWN_TABLE(ZV_ST_TABLE)
+                ZV_LI_DI_PARSED_MARKDOWN_ROWS = FC_PARSE_MARKDOWN_TABLE(ZV_ST_RESPONSE_TABLE)
 
                 # Add to all responses                
                 for ZV_DI_PARSED_MARKDOWN_ROW in ZV_LI_DI_PARSED_MARKDOWN_ROWS:
@@ -324,7 +326,7 @@ def Z00_OPENAI_API():
                             'Observation': ZV_DI_PARSED_MARKDOWN_ROW['Observation'],
                             'Risk': ZV_DI_PARSED_MARKDOWN_ROW['Risk'],
                             'Recommendation': ZV_DI_PARSED_MARKDOWN_ROW['Recommendation'],
-                            'Executive Summary': ZV_ST_SUMMARY.strip()
+                            'Executive Summary': ZV_ST_RESPONSE_SUMMARY.strip()
                         }
                     )
 
