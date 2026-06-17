@@ -59,15 +59,15 @@ ZV_ST_RESULTS_FILE_NAME = ZV_DI_VARIABLES.get('ZV_ST_RESULTS_FILE_NAME')
 def Z00_OPENAI_API():
 
     def FC_CREATE_AI_CLIENT():
-        ZV_OB_AI_CLIENT = PI_OPENAI(
+        ZV_OB_OPENAI_CLIENT = PI_OPENAI(
             default_headers={"OpenAI-Beta": "assistants=v2"},
             api_key=ZV_ST_OPENAI_API_KEY
         )
 
-        ZV_OB_THREAD = ZV_OB_AI_CLIENT.beta.threads.create()
-        ZV_ST_THREAD_ID = ZV_OB_THREAD.id
+        ZV_OB_OPENAI_THREAD = ZV_OB_OPENAI_CLIENT.beta.threads.create()
+        ZV_ST_THREAD_ID = ZV_OB_OPENAI_THREAD.id
 
-        return ZV_OB_AI_CLIENT, ZV_ST_THREAD_ID
+        return ZV_OB_OPENAI_CLIENT, ZV_ST_THREAD_ID
 
 
     def FC_CREATE_AI_ASSISTANT(ZVFCI_AI_CLIENT):
@@ -236,10 +236,10 @@ def Z00_OPENAI_API():
 
     def FC_CHATBOT():   
         # 1.1/ Create client and thread ID 
-        ZV_OB_AI_CLIENT, ZV_ST_THREAD_ID = FC_CREATE_AI_CLIENT()
+        ZV_OB_OPENAI_CLIENT, ZV_ST_THREAD_ID = FC_CREATE_AI_CLIENT()
 
         # 1.2/ Create AI assistant
-        ZV_OB_ASSISTANT = FC_CREATE_AI_ASSISTANT(ZV_OB_AI_CLIENT)
+        ZV_OB_ASSISTANT = FC_CREATE_AI_ASSISTANT(ZV_OB_OPENAI_CLIENT)
 
         # 1.3/ Import JSON tasks
         ZV_DI_ALL_TASKS = FC_LOAD_TASKS_FROM_JSON(ZV_ST_SOURCES_FOLDER, ZV_ST_JSON_FILE_NAME)
@@ -261,7 +261,7 @@ def Z00_OPENAI_API():
                 )
 
                 # Process task
-                ZV_DI_OPENAI_RESPONSE = FC_PROCESS_TASK(ZV_OB_AI_CLIENT, ZV_OB_ASSISTANT, ZV_ST_THREAD_ID, ZV_ST_PROMPT)
+                ZV_DI_OPENAI_RESPONSE = FC_PROCESS_TASK(ZV_OB_OPENAI_CLIENT, ZV_OB_ASSISTANT, ZV_ST_THREAD_ID, ZV_ST_PROMPT)
 
                 # Prepare response
                 ZV_DI_OPENAI_RESPONSE = {
