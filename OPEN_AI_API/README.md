@@ -4,8 +4,6 @@
 Send results table to openAI and get in return a tabe with Observation|Risk|Recommendation|Priority from a pre-trained assistant.
 
 ## Instructions
-Please note: this program automatically finds the requirements file and runs it. To use this functionality, ensure that you are in python version 3.14 or lower.
-
 This program does not require you to input the root folder address. The program will infer the folder address. However, you need to make sure that you respect the folder structure as mentioned below for this inference to work.
 
 ### 1/ Create Virtual Environment 
